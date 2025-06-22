@@ -20,6 +20,11 @@ const ChatWindow = () => {
   });
   const [status, setStatus] = useState('Ready');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [healthStatus, setHealthStatus] = useState({
+    chatgpt: { available: false, error: null },
+    gemini: { available: false, error: null },
+    claude: { available: false, error: null }
+  });
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -33,6 +38,30 @@ const ChatWindow = () => {
   useEffect(() => {
     console.log('Model order updated:', modelOrder);
   }, [modelOrder]);
+
+  // Check health status on component mount
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/health');
+        const data = await response.json();
+        setHealthStatus(data);
+        
+        // Disable unavailable models
+        const newSelectedModels = { ...selectedModels };
+        Object.keys(data).forEach(model => {
+          if (!data[model].available && newSelectedModels[model]) {
+            newSelectedModels[model] = false;
+          }
+        });
+        setSelectedModels(newSelectedModels);
+      } catch (error) {
+        console.error('Failed to check AI health:', error);
+      }
+    };
+
+    checkHealth();
+  }, []);
 
   const handleSendMessage = async (text) => {
     const userMessage = { text, sender: 'User', timestamp: new Date() };
@@ -211,6 +240,7 @@ const ChatWindow = () => {
               onModelChange={setSelectedModels}
               onOrderChange={handleOrderChange}
               modelOrder={modelOrder}
+              healthStatus={healthStatus}
             />
           </div>
           

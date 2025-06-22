@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ModelSelector = ({ selectedModels, onModelChange, onOrderChange, modelOrder }) => {
+const ModelSelector = ({ selectedModels, onModelChange, onOrderChange, modelOrder, healthStatus }) => {
   const [draggedModel, setDraggedModel] = useState(null);
 
   const getOrderedModels = (isActive) => {
@@ -64,6 +64,19 @@ const ModelSelector = ({ selectedModels, onModelChange, onOrderChange, modelOrde
     setDraggedModel(null);
   };
 
+  const getHealthIndicator = (model) => {
+    if (!healthStatus || !healthStatus[model]) {
+      return <span className="health-dot loading" title="Checking availability...">⏳</span>;
+    }
+    
+    const status = healthStatus[model];
+    if (status.available) {
+      return <span className="health-dot available" title="Available">🟢</span>;
+    } else {
+      return <span className="health-dot unavailable" title={`Unavailable: ${status.error}`}>🔴</span>;
+    }
+  };
+
   return (
     <div className="model-selector">
       <h2>AI Response Order</h2>
@@ -87,6 +100,7 @@ const ModelSelector = ({ selectedModels, onModelChange, onOrderChange, modelOrde
               >
                 <div className="slot-number">AI {modelOrder[model]}</div>
                 <div className="model-name">
+                  {getHealthIndicator(model)}
                   {model.charAt(0).toUpperCase() + model.slice(1)}
                 </div>
               </div>
@@ -110,6 +124,7 @@ const ModelSelector = ({ selectedModels, onModelChange, onOrderChange, modelOrde
                 onDragStart={(e) => handleDragStart(e, model)}
               >
                 <div className="model-name">
+                  {getHealthIndicator(model)}
                   {model.charAt(0).toUpperCase() + model.slice(1)}
                 </div>
               </div>

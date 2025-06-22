@@ -535,3 +535,33 @@ code {
 .clear-chat-btn:disabled:hover {
   background-color: #dc3545;
 }
+
+.model-name {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 500;
+}
+
+.health-dot {
+  font-size: 0.7rem;
+  display: inline-block;
+  transition: opacity 0.2s ease;
+}
+
+.health-dot.loading {
+  opacity: 0.7;
+  animation: pulse 1.5s infinite;
+}
+
+.health-dot.available {
+  opacity: 1;
+}
+
+.health-dot.unavailable {
+  opacity: 0.8;
+}
+
+.health-dot:hover {
+  opacity: 1;
+}

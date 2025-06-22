@@ -188,6 +188,124 @@ const callClaude = async (messages) => {
   }
 };
 
+// Health check functions for each AI service
+const checkOpenAIHealth = async () => {
+  try {
+    const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      model: 'gpt-3.5-turbo',
+      messages: [{ role: 'user', content: 'test' }],
+      max_tokens: 5
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    return { available: true, error: null };
+  } catch (error) {
+    console.error('OpenAI health check failed:', error.response?.data || error.message);
+    return { 
+      available: false, 
+      error: error.response?.data?.error?.message || error.message 
+    };
+  }
+};
+
+const checkGeminiHealth = async () => {
+  try {
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: 'test'
+        }]
+      }]
+    };
+    
+    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, requestBody, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 10000
+    });
+    
+    if (response.data.candidates && response.data.candidates.length > 0) {
+      return { available: true, error: null };
+    } else {
+      return { available: false, error: 'Empty response from Gemini' };
+    }
+  } catch (error) {
+    console.error('Gemini health check failed:', error.response?.data || error.message);
+    return { 
+      available: false, 
+      error: error.response?.data?.error?.message || error.message 
+    };
+  }
+};
+
+const checkClaudeHealth = async () => {
+  try {
+    const response = await axios.post('https://api.anthropic.com/v1/messages', {
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 5,
+      messages: [{ role: 'user', content: 'test' }]
+    }, {
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      },
+      timeout: 10000
+    });
+    
+    if (response.data.content && response.data.content.length > 0) {
+      return { available: true, error: null };
+    } else {
+      return { available: false, error: 'Empty response from Claude' };
+    }
+  } catch (error) {
+    console.error('Claude health check failed:', error.response?.data || error.message);
+    return { 
+      available: false, 
+      error: error.response?.data?.error?.message || error.message 
+    };
+  }
+};
+
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    console.log('Performing health checks for all AI services...');
+    
+    const [openAIHealth, geminiHealth, claudeHealth] = await Promise.allSettled([
+      checkOpenAIHealth(),
+      checkGeminiHealth(),
+      checkClaudeHealth()
+    ]);
+    
+    const healthStatus = {
+      chatgpt: {
+        available: openAIHealth.status === 'fulfilled' ? openAIHealth.value.available : false,
+        error: openAIHealth.status === 'fulfilled' ? openAIHealth.value.error : 'Health check failed'
+      },
+      gemini: {
+        available: geminiHealth.status === 'fulfilled' ? geminiHealth.value.available : false,
+        error: geminiHealth.status === 'fulfilled' ? geminiHealth.value.error : 'Health check failed'
+      },
+      claude: {
+        available: claudeHealth.status === 'fulfilled' ? claudeHealth.value.available : false,
+        error: claudeHealth.status === 'fulfilled' ? claudeHealth.value.error : 'Health check failed'
+      }
+    };
+    
+    console.log('Health check results:', healthStatus);
+    res.json(healthStatus);
+  } catch (error) {
+    console.error('Health check endpoint error:', error);
+    res.status(500).json({ error: 'Health check failed' });
+  }
+});
+
 app.post('/api/chat', async (req, res) => {
   const { messages, selectedModels, modelOrder } = req.body;
   console.log('Received message:', messages.slice(-1)[0].text);
