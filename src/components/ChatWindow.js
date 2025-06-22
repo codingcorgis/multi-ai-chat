@@ -1,0 +1,173 @@
+import React, { useState, useEffect, useRef } from 'react';
+import Message from './Message';
+import MessageInput from './MessageInput';
+import ModelSelector from './ModelSelector';
+
+const ChatWindow = () => {
+  const [messages, setMessages] = useState([
+    { text: 'Hello! Ask me anything.', sender: 'System' },
+  ]);
+  const [selectedModels, setSelectedModels] = useState({
+    gemini: true,
+    chatgpt: true,
+    claude: true,
+  });
+  const [modelOrder, setModelOrder] = useState({
+    gemini: 1,
+    chatgpt: 2,
+    claude: 3,
+  });
+  const [status, setStatus] = useState('Ready');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    console.log('Model order updated:', modelOrder);
+  }, [modelOrder]);
+
+  const handleSendMessage = async (text) => {
+    const userMessage = { text, sender: 'User' };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setIsProcessing(true);
+
+    try {
+      // Show initial status
+      setStatus('Processing with selected AIs...');
+      
+      const response = await fetch('http://localhost:3001/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: newMessages,
+          selectedModels,
+          modelOrder,
+        }),
+      });
+
+      const data = await response.json();
+      
+      // Add order numbers to AI responses based on their sequence
+      let aiOrder = 1;
+      const aiResponses = data.responses.map(res => ({
+        text: res.message,
+        sender: res.model,
+        order: aiOrder++
+      }));
+
+      setMessages([...newMessages, ...aiResponses]);
+      setStatus('Ready');
+    } catch (error) {
+      console.error('Error fetching AI response:', error);
+      setMessages([
+        ...newMessages,
+        { text: 'Sorry, something went wrong.', sender: 'System' },
+      ]);
+      setStatus('Error occurred');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleContinueConversation = async () => {
+    setIsProcessing(true);
+
+    try {
+      setStatus('Continuing conversation with AIs...');
+      
+      const response = await fetch('http://localhost:3001/api/continue', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: messages,
+          selectedModels,
+          modelOrder,
+        }),
+      });
+
+      const data = await response.json();
+      
+      // Add order numbers to AI responses based on their sequence
+      let aiOrder = 1;
+      const aiResponses = data.responses.map(res => ({
+        text: res.message,
+        sender: res.model,
+        order: aiOrder++
+      }));
+
+      setMessages([...messages, ...aiResponses]);
+      setStatus('Ready');
+    } catch (error) {
+      console.error('Error continuing conversation:', error);
+      setMessages([
+        ...messages,
+        { text: 'Sorry, something went wrong while continuing the conversation.', sender: 'System' },
+      ]);
+      setStatus('Error occurred');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleOrderChange = (newOrder) => {
+    console.log('Order changed to:', newOrder);
+    setModelOrder(newOrder);
+  };
+
+  return (
+    <div className="chat-window">
+      {/* Fixed Header */}
+      <div className="chat-header">
+        <ModelSelector
+          selectedModels={selectedModels}
+          onModelChange={setSelectedModels}
+          onOrderChange={handleOrderChange}
+          modelOrder={modelOrder}
+        />
+        
+        {/* Status Bar */}
+        <div className="status-bar">
+          <div className="status-indicator">
+            <span className={`status-dot ${isProcessing ? 'processing' : 'ready'}`}></span>
+            <span className="status-text">{status}</span>
+          </div>
+        </div>
+      </div>
+      
+      {/* Scrollable Chat Container */}
+      <div className="chat-container">
+        <div className="messages">
+          {messages.map((message, index) => (
+            <Message
+              key={index}
+              text={message.text}
+              sender={message.sender}
+              order={message.order}
+            />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        <MessageInput 
+          onSendMessage={handleSendMessage} 
+          onContinueConversation={handleContinueConversation}
+          disabled={isProcessing} 
+          canContinue={messages.length > 1 && !isProcessing}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default ChatWindow;

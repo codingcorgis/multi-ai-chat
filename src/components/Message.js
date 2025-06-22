@@ -1,0 +1,33 @@
+import React from 'react';
+
+const Message = ({ text, sender, order }) => {
+  const isUser = sender === 'User';
+  const isSystem = sender === 'System';
+  
+  let avatar;
+  if (isUser) {
+    avatar = 'U';
+  } else if (isSystem) {
+    avatar = 'S';
+  } else {
+    // For AI messages, show the first letter and order number
+    avatar = sender.charAt(0).toUpperCase();
+  }
+
+  return (
+    <div className={`message ${isUser ? 'user' : ''}`}>
+      <div className="avatar">
+        {avatar}
+        {!isUser && !isSystem && order && (
+          <span className="order-number">{order}</span>
+        )}
+      </div>
+      <div className="content">
+        {!isUser && <strong>{sender}</strong>}
+        <div>{text}</div>
+      </div>
+    </div>
+  );
+};
+
+export default Message;
