@@ -129,6 +129,23 @@ const ChatWindow = () => {
     setModelOrder(newOrder);
   };
 
+  const handleClearChat = () => {
+    const hasConversation = messages.length > 1;
+    
+    if (hasConversation) {
+      const confirmed = window.confirm('Are you sure you want to clear the chat? This will start a fresh conversation and cannot be undone.');
+      if (!confirmed) {
+        return;
+      }
+    }
+    
+    setMessages([
+      { text: 'Hello! Ask me anything.', sender: 'System', timestamp: new Date() },
+    ]);
+    setStatus('Ready');
+    setIsProcessing(false);
+  };
+
   return (
     <div className="chat-window">
       {/* Fixed Header */}
@@ -146,6 +163,14 @@ const ChatWindow = () => {
             <span className={`status-dot ${isProcessing ? 'processing' : 'ready'}`}></span>
             <span className="status-text">{status}</span>
           </div>
+          <button 
+            className="clear-chat-btn"
+            onClick={handleClearChat}
+            disabled={isProcessing}
+            title="Clear chat and start fresh"
+          >
+            🗑️ {messages.length > 1 ? 'Clear Chat' : 'New Chat'}
+          </button>
         </div>
       </div>
       
