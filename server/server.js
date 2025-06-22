@@ -20,10 +20,9 @@ const formatMessages = (messages) => {
 // OpenAI API call
 const callOpenAI = async (messages, personality) => {
   try {
-    // Add instruction for multi-AI conversation context
     const systemMessage = {
       role: 'system',
-      content: `You are participating in a multi-AI conversation. You will see responses from other AI assistants (Gemini, Claude, etc.). Please respond naturally to the user's question while also engaging with what the previous AI(s) said. Keep your response to about 1 paragraph. You can agree, disagree, add to, or build upon the previous AI responses. ${personality}`
+      content: `You are participating in a multi-AI conversation. Your personality is: "${personality}". Please respond naturally to the user's question while also engaging with what the previous AI(s) said. Keep your response to about 1 paragraph. You can agree, disagree, add to, or build upon the previous AI responses.`
     };
     
     const formattedMessages = [systemMessage, ...formatMessages(messages)];
@@ -49,28 +48,26 @@ const callOpenAI = async (messages, personality) => {
 // Google AI (Gemini) API call
 const callGemini = async (messages, personality) => {
   try {
-    // For Gemini, we'll send just the current user message for simplicity
     const currentMessage = messages[messages.length - 1];
     
-    // Add instruction for multi-AI conversation context
-    let prompt = currentMessage.text;
+    let prompt;
     const previousAIs = messages.filter(msg => msg.sender !== 'User' && msg.sender !== 'System');
     
     if (previousAIs.length > 0) {
       const lastAI = previousAIs[previousAIs.length - 1];
-      prompt = `You are participating in a multi-AI conversation with other AI assistants. 
+      prompt = `You are participating in a multi-AI conversation with other AI assistants. Your personality is: "${personality}".
 
 Previous AI (${lastAI.sender}) said: "${lastAI.text}"
 
 User's question: ${currentMessage.text}
 
-Please respond naturally to the user's question while also engaging with what the previous AI said. You can agree, disagree, add to, or build upon their response. Keep your response to about 1 paragraph. ${personality}`;
+Please respond naturally to the user's question while also engaging with what the previous AI said. You can agree, disagree, add to, or build upon their response. Keep your response to about 1 paragraph.`;
     } else {
-      prompt = `You are participating in a multi-AI conversation with other AI assistants. 
+      prompt = `You are participating in a multi-AI conversation with other AI assistants. Your personality is: "${personality}".
 
 User's question: ${currentMessage.text}
 
-Please provide your response to the user's question. Keep your response to about 1 paragraph. Other AI assistants may respond after you. ${personality}`;
+Please provide your response to the user's question. Keep your response to about 1 paragraph. Other AI assistants may respond after you.`;
     }
     
     console.log('Calling Gemini API with message:', prompt);
@@ -147,7 +144,7 @@ const callClaude = async (messages, personality) => {
     // Add instruction for multi-AI conversation context
     const instructionMessage = {
       role: 'user',
-      content: `You are participating in a multi-AI conversation with other AI assistants (Gemini, ChatGPT, etc.). You will see responses from previous AI assistants. Please respond naturally to the user's question while also engaging with what the previous AI(s) said. You can agree, disagree, add to, or build upon their responses. Keep your response to about 1 paragraph. ${personality}`
+      content: `You are participating in a multi-AI conversation with other AI assistants (Gemini, ChatGPT, etc.). Your personality is: "${personality}". You will see responses from previous AI assistants. Please respond naturally to the user's question while also engaging with what the previous AI(s) said. You can agree, disagree, add to, or build upon their responses. Keep your response to about 1 paragraph.`
     };
 
     const allMessages = [instructionMessage, ...formattedMessages];
