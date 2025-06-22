@@ -175,6 +175,16 @@ const ChatWindow = () => {
     setIsProcessing(false);
   };
 
+  const handleDeleteMessage = (index) => {
+    const messageToDelete = messages[index];
+    const confirmed = window.confirm(`Are you sure you want to delete this response from ${messageToDelete.sender}? This will remove it from the conversation history.`);
+    
+    if (confirmed) {
+      const newMessages = messages.filter((_, i) => i !== index);
+      setMessages(newMessages);
+    }
+  };
+
   return (
     <div className="chat-window">
       {/* Fixed Header */}
@@ -212,6 +222,8 @@ const ChatWindow = () => {
                 sender={message.sender}
                 order={message.order}
                 timestamp={message.timestamp}
+                onDelete={handleDeleteMessage}
+                index={index}
               />
             ))}
             {isProcessing && (

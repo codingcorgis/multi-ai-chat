@@ -181,27 +181,83 @@ code {
   }
 }
 
-.message .timestamp {
-  font-size: 0.75rem;
-  color: #888;
-  margin-left: 0.5rem;
-  margin-right: 0.5rem;
-}
-
-.message.user .timestamp {
-  order: -1;
-}
-
 .message {
   display: flex;
   gap: 0.5rem;
   align-items: flex-start;
   max-width: 70%;
+  position: relative;
 }
 
 .message.user {
   align-self: flex-end;
   flex-direction: row-reverse;
+}
+
+.message-content {
+  background-color: var(--secondary-color);
+  border-radius: 10px;
+  padding: 0.75rem;
+  position: relative;
+  flex: 1;
+}
+
+.message.user .message-content {
+  background-color: var(--user-message-color);
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.message-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.message-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sender-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.message-text {
+  line-height: 1.4;
+  color: var(--text-color);
+}
+
+.delete-message-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.7;
+  line-height: 1;
+}
+
+.delete-message-btn:hover {
+  background-color: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  opacity: 1;
 }
 
 .message .avatar {
@@ -222,26 +278,15 @@ code {
   top: -2px;
   right: -2px;
   background-color: var(--primary-color);
-  color: var(--background-color);
+  color: white;
   border-radius: 50%;
-  width: 16px;
-  height: 16px;
-  font-size: 10px;
-  font-weight: bold;
+  width: 18px;
+  height: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid var(--background-color);
-}
-
-.message .content {
-  background-color: var(--ai-message-color);
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-}
-
-.message.user .content {
-  background-color: var(--user-message-color);
+  font-size: 0.7rem;
+  font-weight: bold;
 }
 
 .model-selector-options {
