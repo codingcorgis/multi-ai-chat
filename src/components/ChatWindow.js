@@ -150,6 +150,9 @@ const ChatWindow = () => {
     <div className="chat-window">
       {/* Fixed Header */}
       <div className="chat-header">
+        <div className="chat-title">
+          <h1>Multi AI Group Chat</h1>
+        </div>
         <ModelSelector
           selectedModels={selectedModels}
           onModelChange={setSelectedModels}

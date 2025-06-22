@@ -43,6 +43,21 @@ code {
   background-color: #2c303a;
 }
 
+.chat-title {
+  text-align: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #444;
+}
+
+.chat-title h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  text-shadow: 0 0 10px rgba(97, 218, 251, 0.3);
+}
+
 .model-selector h2 {
   text-align: center;
   font-size: 1.1rem;
