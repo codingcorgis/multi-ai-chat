@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Message = ({ text, sender, order }) => {
+const Message = ({ text, sender, order, timestamp }) => {
   const isUser = sender === 'User';
   const isSystem = sender === 'System';
   
@@ -14,6 +14,11 @@ const Message = ({ text, sender, order }) => {
     avatar = sender.charAt(0).toUpperCase();
   }
 
+  const formatTime = (date) => {
+    if (!date) return '';
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <div className={`message ${isUser ? 'user' : ''}`}>
       <div className="avatar">
@@ -26,6 +31,7 @@ const Message = ({ text, sender, order }) => {
         {!isUser && <strong>{sender}</strong>}
         <div>{text}</div>
       </div>
+      {timestamp && <span className="timestamp">{formatTime(timestamp)}</span>}
     </div>
   );
 };

@@ -5,7 +5,7 @@ import ModelSelector from './ModelSelector';
 
 const ChatWindow = () => {
   const [messages, setMessages] = useState([
-    { text: 'Hello! Ask me anything.', sender: 'System' },
+    { text: 'Hello! Ask me anything.', sender: 'System', timestamp: new Date() },
   ]);
   const [selectedModels, setSelectedModels] = useState({
     gemini: true,
@@ -34,7 +34,7 @@ const ChatWindow = () => {
   }, [modelOrder]);
 
   const handleSendMessage = async (text) => {
-    const userMessage = { text, sender: 'User' };
+    const userMessage = { text, sender: 'User', timestamp: new Date() };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setIsProcessing(true);
@@ -62,7 +62,8 @@ const ChatWindow = () => {
       const aiResponses = data.responses.map(res => ({
         text: res.message,
         sender: res.model,
-        order: aiOrder++
+        order: aiOrder++,
+        timestamp: new Date()
       }));
 
       setMessages([...newMessages, ...aiResponses]);
@@ -71,7 +72,7 @@ const ChatWindow = () => {
       console.error('Error fetching AI response:', error);
       setMessages([
         ...newMessages,
-        { text: 'Sorry, something went wrong.', sender: 'System' },
+        { text: 'Sorry, something went wrong.', sender: 'System', timestamp: new Date() },
       ]);
       setStatus('Error occurred');
     } finally {
@@ -104,7 +105,8 @@ const ChatWindow = () => {
       const aiResponses = data.responses.map(res => ({
         text: res.message,
         sender: res.model,
-        order: aiOrder++
+        order: aiOrder++,
+        timestamp: new Date()
       }));
 
       setMessages([...messages, ...aiResponses]);
@@ -113,7 +115,7 @@ const ChatWindow = () => {
       console.error('Error continuing conversation:', error);
       setMessages([
         ...messages,
-        { text: 'Sorry, something went wrong while continuing the conversation.', sender: 'System' },
+        { text: 'Sorry, something went wrong while continuing the conversation.', sender: 'System', timestamp: new Date() },
       ]);
       setStatus('Error occurred');
     } finally {
@@ -155,8 +157,16 @@ const ChatWindow = () => {
               text={message.text}
               sender={message.sender}
               order={message.order}
+              timestamp={message.timestamp}
             />
           ))}
+          {isProcessing && (
+            <div className="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          )}
           <div ref={messagesEndRef} />
         </div>
         <MessageInput 
