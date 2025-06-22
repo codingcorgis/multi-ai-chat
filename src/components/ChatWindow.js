@@ -25,6 +25,11 @@ const ChatWindow = () => {
     gemini: { available: false, error: null },
     claude: { available: false, error: null }
   });
+  const [aiPersonalities, setAiPersonalities] = useState({
+    chatgpt: '',
+    gemini: '',
+    claude: ''
+  });
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -82,6 +87,7 @@ const ChatWindow = () => {
           messages: newMessages,
           selectedModels,
           modelOrder,
+          aiPersonalities,
         }),
       });
 
@@ -125,6 +131,7 @@ const ChatWindow = () => {
           messages: messages,
           selectedModels,
           modelOrder,
+          aiPersonalities,
         }),
       });
 
@@ -191,6 +198,13 @@ const ChatWindow = () => {
       const newMessages = messages.filter((_, i) => i !== index);
       setMessages(newMessages);
     }
+  };
+
+  const handlePersonalityChange = (model, personality) => {
+    setAiPersonalities(prev => ({
+      ...prev,
+      [model]: personality
+    }));
   };
 
   return (
@@ -261,6 +275,8 @@ const ChatWindow = () => {
               onOrderChange={handleOrderChange}
               modelOrder={modelOrder}
               healthStatus={healthStatus}
+              aiPersonalities={aiPersonalities}
+              onPersonalityChange={handlePersonalityChange}
             />
           </div>
           

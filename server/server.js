@@ -18,12 +18,12 @@ const formatMessages = (messages) => {
 };
 
 // OpenAI API call
-const callOpenAI = async (messages) => {
+const callOpenAI = async (messages, personality) => {
   try {
     // Add instruction for multi-AI conversation context
     const systemMessage = {
       role: 'system',
-      content: 'You are participating in a multi-AI conversation. You will see responses from other AI assistants (Gemini, Claude, etc.). Please respond naturally to the user\'s question while also engaging with what the previous AI(s) said. Keep your response to about 1 paragraph. You can agree, disagree, add to, or build upon the previous AI responses.'
+      content: `You are participating in a multi-AI conversation. You will see responses from other AI assistants (Gemini, Claude, etc.). Please respond naturally to the user's question while also engaging with what the previous AI(s) said. Keep your response to about 1 paragraph. You can agree, disagree, add to, or build upon the previous AI responses. ${personality}`
     };
     
     const formattedMessages = [systemMessage, ...formatMessages(messages)];
@@ -47,7 +47,7 @@ const callOpenAI = async (messages) => {
 };
 
 // Google AI (Gemini) API call
-const callGemini = async (messages) => {
+const callGemini = async (messages, personality) => {
   try {
     // For Gemini, we'll send just the current user message for simplicity
     const currentMessage = messages[messages.length - 1];
@@ -64,13 +64,13 @@ Previous AI (${lastAI.sender}) said: "${lastAI.text}"
 
 User's question: ${currentMessage.text}
 
-Please respond naturally to the user's question while also engaging with what the previous AI said. You can agree, disagree, add to, or build upon their response. Keep your response to about 1 paragraph.`;
+Please respond naturally to the user's question while also engaging with what the previous AI said. You can agree, disagree, add to, or build upon their response. Keep your response to about 1 paragraph. ${personality}`;
     } else {
       prompt = `You are participating in a multi-AI conversation with other AI assistants. 
 
 User's question: ${currentMessage.text}
 
-Please provide your response to the user's question. Keep your response to about 1 paragraph. Other AI assistants may respond after you.`;
+Please provide your response to the user's question. Keep your response to about 1 paragraph. Other AI assistants may respond after you. ${personality}`;
     }
     
     console.log('Calling Gemini API with message:', prompt);
@@ -130,7 +130,7 @@ Please provide your response to the user's question. Keep your response to about
 };
 
 // Anthropic (Claude) API call
-const callClaude = async (messages) => {
+const callClaude = async (messages, personality) => {
   try {
     // Format messages specifically for Claude API with multi-AI context
     const formattedMessages = messages.map(msg => {
@@ -147,7 +147,7 @@ const callClaude = async (messages) => {
     // Add instruction for multi-AI conversation context
     const instructionMessage = {
       role: 'user',
-      content: 'You are participating in a multi-AI conversation with other AI assistants (Gemini, ChatGPT, etc.). You will see responses from previous AI assistants. Please respond naturally to the user\'s question while also engaging with what the previous AI(s) said. You can agree, disagree, add to, or build upon their responses. Keep your response to about 1 paragraph.'
+      content: `You are participating in a multi-AI conversation with other AI assistants (Gemini, ChatGPT, etc.). You will see responses from previous AI assistants. Please respond naturally to the user's question while also engaging with what the previous AI(s) said. You can agree, disagree, add to, or build upon their responses. Keep your response to about 1 paragraph. ${personality}`
     };
 
     const allMessages = [instructionMessage, ...formattedMessages];
@@ -307,10 +307,11 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { messages, selectedModels, modelOrder } = req.body;
+  const { messages, selectedModels, modelOrder, aiPersonalities } = req.body;
   console.log('Received message:', messages.slice(-1)[0].text);
   console.log('Selected models:', selectedModels);
   console.log('Model order:', modelOrder);
+  console.log('AI personalities:', aiPersonalities);
 
   const responses = [];
   let currentMessages = [...messages]; // Start with existing conversation
@@ -328,15 +329,17 @@ app.post('/api/chat', async (req, res) => {
     console.log(`Calling ${model}...`);
     let response;
     
+    const personality = aiPersonalities[model] || '';
+    
     switch (model) {
       case 'gemini':
-        response = await callGemini(currentMessages);
+        response = await callGemini(currentMessages, personality);
         break;
       case 'chatgpt':
-        response = await callOpenAI(currentMessages);
+        response = await callOpenAI(currentMessages, personality);
         break;
       case 'claude':
-        response = await callClaude(currentMessages);
+        response = await callClaude(currentMessages, personality);
         break;
       default:
         continue;
@@ -357,10 +360,11 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.post('/api/continue', async (req, res) => {
-  const { messages, selectedModels, modelOrder } = req.body;
+  const { messages, selectedModels, modelOrder, aiPersonalities } = req.body;
   console.log('Continuing conversation with previous messages');
   console.log('Selected models:', selectedModels);
   console.log('Model order:', modelOrder);
+  console.log('AI personalities:', aiPersonalities);
 
   const responses = [];
   let currentMessages = [...messages]; // Start with existing conversation
@@ -378,15 +382,17 @@ app.post('/api/continue', async (req, res) => {
     console.log(`Calling ${model} for continuation...`);
     let response;
     
+    const personality = aiPersonalities[model] || '';
+    
     switch (model) {
       case 'gemini':
-        response = await callGemini(currentMessages);
+        response = await callGemini(currentMessages, personality);
         break;
       case 'chatgpt':
-        response = await callOpenAI(currentMessages);
+        response = await callOpenAI(currentMessages, personality);
         break;
       case 'claude':
-        response = await callClaude(currentMessages);
+        response = await callClaude(currentMessages, personality);
         break;
       default:
         continue;
