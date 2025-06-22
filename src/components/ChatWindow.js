@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Message from './Message';
 import MessageInput from './MessageInput';
 import ModelSelector from './ModelSelector';
+import SummaryToolbar from './SummaryToolbar';
 
 const ChatWindow = () => {
   const [messages, setMessages] = useState([
@@ -148,33 +149,39 @@ const ChatWindow = () => {
         </div>
       </div>
       
-      {/* Scrollable Chat Container */}
-      <div className="chat-container">
-        <div className="messages">
-          {messages.map((message, index) => (
-            <Message
-              key={index}
-              text={message.text}
-              sender={message.sender}
-              order={message.order}
-              timestamp={message.timestamp}
-            />
-          ))}
-          {isProcessing && (
-            <div className="typing-indicator">
-              <span></span>
-              <span></span>
-              <span></span>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+      {/* Main Content Area */}
+      <div className="chat-main-content">
+        {/* Scrollable Chat Container */}
+        <div className="chat-container">
+          <div className="messages">
+            {messages.map((message, index) => (
+              <Message
+                key={index}
+                text={message.text}
+                sender={message.sender}
+                order={message.order}
+                timestamp={message.timestamp}
+              />
+            ))}
+            {isProcessing && (
+              <div className="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          <MessageInput 
+            onSendMessage={handleSendMessage} 
+            onContinueConversation={handleContinueConversation}
+            disabled={isProcessing} 
+            canContinue={messages.length > 1 && !isProcessing}
+          />
         </div>
-        <MessageInput 
-          onSendMessage={handleSendMessage} 
-          onContinueConversation={handleContinueConversation}
-          disabled={isProcessing} 
-          canContinue={messages.length > 1 && !isProcessing}
-        />
+        
+        {/* Summary Toolbar */}
+        <SummaryToolbar messages={messages} />
       </div>
     </div>
   );

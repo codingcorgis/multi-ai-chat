@@ -288,6 +288,59 @@ app.post('/api/continue', async (req, res) => {
   });
 });
 
+// Summarization endpoint using Gemini
+app.post('/api/summarize', async (req, res) => {
+  const { messages } = req.body;
+  
+  if (!messages || messages.length === 0) {
+    return res.json({ summary: 'No messages to summarize' });
+  }
+
+  try {
+    // Format conversation for summarization
+    const conversationText = messages.map(msg => 
+      `${msg.sender}: ${msg.text}`
+    ).join('\n\n');
+
+    const summaryPrompt = `Please provide a concise summary of this multi-AI conversation. Focus on the main topics discussed, key insights shared by the different AI assistants, and any conclusions reached. Keep the summary to 2-3 sentences maximum.
+
+Conversation:
+${conversationText}
+
+Summary:`;
+
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: summaryPrompt
+        }]
+      }]
+    };
+
+    const response = await axios.post(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, requestBody, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 30000
+    });
+
+    if (response.data.candidates && response.data.candidates.length > 0) {
+      const candidate = response.data.candidates[0];
+      if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {
+        const summary = candidate.content.parts[0].text;
+        res.json({ summary });
+      } else {
+        res.json({ summary: 'Failed to generate summary' });
+      }
+    } else {
+      res.json({ summary: 'Failed to generate summary' });
+    }
+  } catch (error) {
+    console.error('Summarization error:', error);
+    res.json({ summary: 'Error generating summary' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
