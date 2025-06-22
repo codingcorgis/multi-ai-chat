@@ -177,7 +177,15 @@ const ChatWindow = () => {
 
   const handleDeleteMessage = (index) => {
     const messageToDelete = messages[index];
-    const confirmed = window.confirm(`Are you sure you want to delete this response from ${messageToDelete.sender}? This will remove it from the conversation history.`);
+    let confirmationMessage;
+    
+    if (messageToDelete.sender === 'User') {
+      confirmationMessage = 'Are you sure you want to delete your message? This will remove it from the conversation history.';
+    } else {
+      confirmationMessage = `Are you sure you want to delete this response from ${messageToDelete.sender}? This will remove it from the conversation history.`;
+    }
+    
+    const confirmed = window.confirm(confirmationMessage);
     
     if (confirmed) {
       const newMessages = messages.filter((_, i) => i !== index);

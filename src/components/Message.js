@@ -40,11 +40,11 @@ const Message = ({ text, sender, order, timestamp, onDelete, index }) => {
               <div className="timestamp">{formatTime(timestamp)}</div>
             </div>
           </div>
-          {sender !== 'User' && sender !== 'System' && (
+          {sender !== 'System' && (
             <button 
               className="delete-message-btn"
               onClick={() => onDelete(index)}
-              title="Delete this response"
+              title="Delete this message"
             >
               ✕
             </button>
