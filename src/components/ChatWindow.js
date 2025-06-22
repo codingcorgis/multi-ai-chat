@@ -153,12 +153,6 @@ const ChatWindow = () => {
         <div className="chat-title">
           <h1>Multi AI Group Chat</h1>
         </div>
-        <ModelSelector
-          selectedModels={selectedModels}
-          onModelChange={setSelectedModels}
-          onOrderChange={handleOrderChange}
-          modelOrder={modelOrder}
-        />
         
         {/* Status Bar */}
         <div className="status-bar">
@@ -208,8 +202,23 @@ const ChatWindow = () => {
           />
         </div>
         
-        {/* Summary Toolbar */}
-        <SummaryToolbar messages={messages} />
+        {/* Right Toolbar */}
+        <div className="right-toolbar">
+          {/* AI Order Selector */}
+          <div className="toolbar-section">
+            <ModelSelector
+              selectedModels={selectedModels}
+              onModelChange={setSelectedModels}
+              onOrderChange={handleOrderChange}
+              modelOrder={modelOrder}
+            />
+          </div>
+          
+          {/* Summary Toolbar */}
+          <div className="toolbar-section">
+            <SummaryToolbar messages={messages} />
+          </div>
+        </div>
       </div>
     </div>
   );
