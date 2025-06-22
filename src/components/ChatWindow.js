@@ -212,7 +212,7 @@ const ChatWindow = () => {
       {/* Fixed Header */}
       <div className="chat-header">
         <div className="chat-title">
-          <h1>Multi AI Group Chat</h1>
+          <h1>brAIn Trust</h1>
         </div>
         
         {/* Status Bar */}
