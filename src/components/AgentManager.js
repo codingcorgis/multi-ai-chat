@@ -16,7 +16,8 @@ const AgentModal = ({ agent, onSave, onClose }) => {
       id: agent?.id || uuidv4(),
       name,
       model,
-      personality
+      personality,
+      active: agent?.active !== false // default to true if undefined
     });
   };
 
@@ -101,12 +102,20 @@ const AgentManager = ({ agents, onAgentsChange }) => {
       onAgentsChange(agents.filter(a => a.id !== agentId));
     }
   };
-  
+
+  const handleMuteAgent = (agentId) => {
+    onAgentsChange(
+      agents.map(a =>
+        a.id === agentId ? { ...a, active: !a.active } : a
+      )
+    );
+  };
+
   const handleDragStart = (e, agentId) => {
     setDraggedAgentId(agentId);
     e.dataTransfer.effectAllowed = 'move';
   };
-  
+
   const handleDrop = (e, dropIndex) => {
     e.preventDefault();
     const draggedIndex = agents.findIndex(a => a.id === draggedAgentId);
@@ -116,7 +125,7 @@ const AgentManager = ({ agents, onAgentsChange }) => {
     onAgentsChange(newAgents);
     setDraggedAgentId(null);
   };
-  
+
   return (
     <div className="agent-manager">
       <div className="agent-manager-header">
@@ -127,9 +136,9 @@ const AgentManager = ({ agents, onAgentsChange }) => {
       </div>
       <div className="agent-list" onDragOver={(e) => e.preventDefault()}>
         {agents.map((agent, index) => (
-          <div 
-            key={agent.id} 
-            className="agent-card"
+          <div
+            key={agent.id}
+            className={`agent-card${agent.active === false ? ' muted' : ''}`}
             draggable
             onDragStart={(e) => handleDragStart(e, agent.id)}
             onDrop={(e) => handleDrop(e, index)}
@@ -142,6 +151,9 @@ const AgentManager = ({ agents, onAgentsChange }) => {
               </div>
             </div>
             <div className="agent-actions">
+              <button onClick={() => handleMuteAgent(agent.id)} title={agent.active === false ? 'Unmute agent' : 'Mute agent'}>
+                {agent.active === false ? '🔈' : '🔇'}
+              </button>
               <button onClick={() => handleEditAgent(agent)}>Edit</button>
               <button onClick={() => handleDeleteAgent(agent.id)}>Delete</button>
             </div>

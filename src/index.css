@@ -820,6 +820,15 @@ code {
   background-color: #4a4f5b;
 }
 
+.agent-card.muted {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+  background-color: #23252b;
+}
+.agent-card.muted .agent-name {
+  text-decoration: line-through;
+}
+
 .agent-info {
   display: flex;
   align-items: center;

@@ -30,7 +30,7 @@ const ChatWindow = () => {
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
 
-    if (agents.length === 0) return;
+    if (agents.filter(a => a.active !== false).length === 0) return;
 
     setIsProcessing(true);
     setStatus('Processing with agents...');
@@ -43,7 +43,7 @@ const ChatWindow = () => {
         },
         body: JSON.stringify({
           messages: newMessages,
-          agents: agents,
+          agents: agents.filter(a => a.active !== false),
         }),
       });
 
@@ -70,7 +70,7 @@ const ChatWindow = () => {
   };
 
   const handleContinueConversation = async () => {
-    if (agents.length === 0) return;
+    if (agents.filter(a => a.active !== false).length === 0) return;
     
     setIsProcessing(true);
     setStatus('Continuing conversation with agents...');
@@ -83,7 +83,7 @@ const ChatWindow = () => {
         },
         body: JSON.stringify({
           messages: messages,
-          agents: agents,
+          agents: agents.filter(a => a.active !== false),
         }),
       });
 
@@ -171,8 +171,8 @@ const ChatWindow = () => {
           <MessageInput 
             onSendMessage={handleSendMessage} 
             onContinueConversation={handleContinueConversation}
-            disabled={isProcessing || agents.length === 0} 
-            canContinue={messages.length > 1 && !isProcessing && agents.length > 0}
+            disabled={isProcessing || agents.filter(a => a.active !== false).length === 0} 
+            canContinue={messages.length > 1 && !isProcessing && agents.filter(a => a.active !== false).length > 0}
           />
         </div>
         
