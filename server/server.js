@@ -129,25 +129,12 @@ Please provide your response to the user's question. Keep your response to about
 // Anthropic (Claude) API call
 const callClaude = async (messages, personality) => {
   try {
-    // Format messages specifically for Claude API with multi-AI context
-    const formattedMessages = messages.map(msg => {
-      if (msg.sender === 'User') {
-        return { role: 'user', content: msg.text };
-      } else if (msg.sender === 'System') {
-        return { role: 'user', content: msg.text }; // Claude doesn't have system role, convert to user
-      } else {
-        // For AI responses, include them as user messages with context
-        return { role: 'user', content: `Previous response from ${msg.sender}: ${msg.text}` };
-      }
-    });
-
-    // Add instruction for multi-AI conversation context
     const instructionMessage = {
       role: 'user',
-      content: `You are participating in a multi-AI conversation with other AI assistants (Gemini, ChatGPT, etc.). Your personality is: "${personality}". You will see responses from previous AI assistants. Please respond naturally to the user's question while also engaging with what the previous AI(s) said. You can agree, disagree, add to, or build upon their responses. Keep your response to about 1 paragraph.`
+      content: `You are participating in a multi-AI conversation. Your personality is: "${personality}". You will see responses from previous AI assistants. Please respond naturally to the user's question while also engaging with what the previous AI(s) said. Keep your response to about 1 paragraph.`
     };
 
-    const allMessages = [instructionMessage, ...formattedMessages];
+    const allMessages = [instructionMessage, ...formatMessages(messages)];
     
     console.log('Claude API request messages:', JSON.stringify(allMessages, null, 2));
     
@@ -304,109 +291,90 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.post('/api/chat', async (req, res) => {
-  const { messages, selectedModels, modelOrder, aiPersonalities } = req.body;
+  const { messages, agents } = req.body;
+
+  if (!agents || agents.length === 0) {
+    return res.status(400).json({ error: 'No agents provided.' });
+  }
+
   console.log('Received message:', messages.slice(-1)[0].text);
-  console.log('Selected models:', selectedModels);
-  console.log('Model order:', modelOrder);
-  console.log('AI personalities:', aiPersonalities);
+  console.log('Processing with agents:', agents.map(a => a.name));
 
   const responses = [];
-  let currentMessages = [...messages]; // Start with existing conversation
+  let currentMessages = [...messages];
 
-  // Get ordered list of selected models
-  const orderedModels = Object.entries(modelOrder)
-    .filter(([model, _]) => selectedModels[model])
-    .sort(([, a], [, b]) => a - b)
-    .map(([model, _]) => model);
+  for (const agent of agents) {
+    console.log(`Calling agent: ${agent.name} (${agent.model})...`);
+    let responseText;
 
-  console.log('Processing models in order:', orderedModels);
+    const callFunction = {
+      gemini: callGemini,
+      chatgpt: callOpenAI,
+      claude: callClaude
+    }[agent.model];
 
-  // Call AIs in the specified order
-  for (const model of orderedModels) {
-    console.log(`Calling ${model}...`);
-    let response;
-    
-    const personality = aiPersonalities[model] || '';
-    
-    switch (model) {
-      case 'gemini':
-        response = await callGemini(currentMessages, personality);
-        break;
-      case 'chatgpt':
-        response = await callOpenAI(currentMessages, personality);
-        break;
-      case 'claude':
-        response = await callClaude(currentMessages, personality);
-        break;
-      default:
-        continue;
+    if (callFunction) {
+      responseText = await callFunction(currentMessages, agent.personality);
+    } else {
+      console.error(`Unknown model: ${agent.model}`);
+      responseText = `Error: Unknown model '${agent.model}' for agent '${agent.name}'.`;
     }
     
-    console.log(`${model} response:`, response);
-    responses.push({ model: model.charAt(0).toUpperCase() + model.slice(1), message: response });
+    const newResponse = {
+      text: responseText,
+      sender: agent.name,
+      order: responses.length + 1
+    };
     
-    // Add response to the conversation for the next AI
-    currentMessages.push({ text: response, sender: model.charAt(0).toUpperCase() + model.slice(1) });
+    responses.push(newResponse);
+    currentMessages.push({ text: responseText, sender: agent.name });
   }
 
   console.log('Sending responses:', responses);
-  res.json({ 
-    responses,
-    conversationFlow: responses.map(r => r.model).join(' → ')
-  });
+  res.json({ responses });
 });
 
 app.post('/api/continue', async (req, res) => {
-  const { messages, selectedModels, modelOrder, aiPersonalities } = req.body;
-  console.log('Continuing conversation with previous messages');
-  console.log('Selected models:', selectedModels);
-  console.log('Model order:', modelOrder);
-  console.log('AI personalities:', aiPersonalities);
+  const { messages, agents } = req.body;
+
+  if (!agents || agents.length === 0) {
+    return res.status(400).json({ error: 'No agents provided.' });
+  }
+
+  console.log('Continuing conversation with agents:', agents.map(a => a.name));
 
   const responses = [];
-  let currentMessages = [...messages]; // Start with existing conversation
+  let currentMessages = [...messages];
 
-  // Get ordered list of selected models
-  const orderedModels = Object.entries(modelOrder)
-    .filter(([model, _]) => selectedModels[model])
-    .sort(([, a], [, b]) => a - b)
-    .map(([model, _]) => model);
+  for (const agent of agents) {
+    console.log(`Continuing with agent: ${agent.name} (${agent.model})...`);
+    let responseText;
 
-  console.log('Processing models in order for continuation:', orderedModels);
+    const callFunction = {
+      gemini: callGemini,
+      chatgpt: callOpenAI,
+      claude: callClaude
+    }[agent.model];
 
-  // Call AIs in the specified order
-  for (const model of orderedModels) {
-    console.log(`Calling ${model} for continuation...`);
-    let response;
-    
-    const personality = aiPersonalities[model] || '';
-    
-    switch (model) {
-      case 'gemini':
-        response = await callGemini(currentMessages, personality);
-        break;
-      case 'chatgpt':
-        response = await callOpenAI(currentMessages, personality);
-        break;
-      case 'claude':
-        response = await callClaude(currentMessages, personality);
-        break;
-      default:
-        continue;
+    if (callFunction) {
+      responseText = await callFunction(currentMessages, agent.personality);
+    } else {
+      console.error(`Unknown model: ${agent.model}`);
+      responseText = `Error: Unknown model '${agent.model}' for agent '${agent.name}'.`;
     }
     
-    console.log(`${model} continuation response:`, response);
-    responses.push({ model: model.charAt(0).toUpperCase() + model.slice(1), message: response });
+    const newResponse = {
+      text: responseText,
+      sender: agent.name,
+      order: responses.length + 1
+    };
     
-    // Add response to the conversation for the next AI
-    currentMessages.push({ text: response, sender: model.charAt(0).toUpperCase() + model.slice(1) });
+    responses.push(newResponse);
+    currentMessages.push({ text: responseText, sender: agent.name });
   }
 
   console.log('Sending continuation responses:', responses);
-  res.json({ 
-    responses,
-    conversationFlow: responses.map(r => r.model).join(' → ')
-  });
+  res.json({ responses });
 });
 
 // Summarization endpoint using Gemini

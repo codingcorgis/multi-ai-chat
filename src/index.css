@@ -773,3 +773,125 @@ code {
 .btn-secondary:hover {
   background-color: #666;
 }
+
+/* Agent Manager Styles */
+.agent-manager {
+  padding: 1rem;
+  background-color: #2c303a;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.agent-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agent-manager-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.agent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.agent-card {
+  background-color: #3a3f4b;
+  border-radius: 6px;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #555;
+  cursor: grab;
+}
+
+.agent-card:active {
+  cursor: grabbing;
+  background-color: #4a4f5b;
+}
+
+.agent-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.agent-order-handle {
+  color: #888;
+  font-size: 1.2rem;
+  padding-right: 0.25rem;
+}
+
+.agent-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.agent-name {
+  font-weight: 600;
+}
+
+.agent-model {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: capitalize;
+}
+
+.agent-actions button {
+  background: none;
+  border: 1px solid #555;
+  color: #ccc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.agent-actions button:hover {
+  background-color: #4a4f5b;
+  border-color: #777;
+}
+
+.empty-agents {
+  text-align: center;
+  color: #888;
+  padding: 2rem 1rem;
+  border: 2px dashed #444;
+  border-radius: 8px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ccc;
+  font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background-color: #3a3f4b;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
